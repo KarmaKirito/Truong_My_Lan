@@ -14,16 +14,11 @@ ship = pygame.image.load('Find_treasure/ship_1.png').convert_alpha()
 blank_wooden_board = pygame.transform.scale(pygame.image.load('Find_treasure/blank_wooden_board_official.png')
                                             .convert_alpha(), (200, 200))
 cannon = pygame.transform.scale(pygame.image.load('Find_treasure/Cannon_official.png').convert_alpha(), (400, 400))
+#island_pic = pygame.image.load('spaceships_bullets_game/spaceship3.png').convert_alpha()
 treasure_chest = pygame.transform.scale(pygame.image.load('Find_treasure/collect_treasure_chest.jpg').convert_alpha(), RES)
 on_island_img = pygame.transform.scale(pygame.image.load('Find_treasure/go_on_island.jpg'), RES)
 explosion_imgs = pygame.image.load('explosion_3_40_128.png').convert_alpha()
 explosion_animation_steps = [8, 8, 8, 8, 7]
-blockade_size = (400, 400)
-abandon_ship = pygame.transform.scale(pygame.image.load('Find_treasure/abandoned_ship_official.png').convert_alpha(), blockade_size)
-kraken = pygame.transform.scale(pygame.image.load('Find_treasure/Kraken_official.png').convert_alpha(), blockade_size)
-tornado = pygame.transform.scale(pygame.image.load('Find_treasure/tornado_official.png').convert_alpha(), blockade_size)
-blockades = [abandon_ship, kraken, tornado]
-
 answer_input = ''
 island_images = []
 for i in range(0, 11):
@@ -123,10 +118,20 @@ def change_update(position, list):
 
 
 def draw_health_bar(health, x, y):
-    ratio = health / 300
-    pygame.draw.rect(screen, (255, 255, 255), (x - 5, y - 3, 210, 36))
-    pygame.draw.rect(screen, (119, 252, 3), (x, y, 200, 30))
-    pygame.draw.rect(screen, (255, 0, 0), (x, y, 200 * ratio, 30))
+    pygame.draw.rect(screen, (255, 255, 255), (x, y, 100, 40))
+    pygame.draw.rect(screen, (255, 255, 255), (x + 110, y, 100, 40))
+    pygame.draw.rect(screen, (255, 255, 255), (x + 220, y, 100, 40))
+    if health == 300:
+        pygame.draw.rect(screen, (119, 252, 3), (x+5, y+5, 90, 30))
+        pygame.draw.rect(screen, (119, 252, 3), (x+115, y+5, 90, 30))
+        pygame.draw.rect(screen, (119, 252, 3), (x+225, y+5, 90, 30))
+    elif health == 200:
+        pygame.draw.rect(screen, (119, 252, 3), (x+5, y+5, 90, 30))
+        pygame.draw.rect(screen, (119, 252, 3), (x+115, y+5, 90, 30))
+    elif health == 100:
+        pygame.draw.rect(screen, (119, 252, 3), (x+5, y+5, 90, 30))
+    else:
+        pass
 
 
 def money(gold, x, y):
@@ -237,15 +242,13 @@ def game():
     PT3 = Button(blank_wooden_board, text_input='x2 score',
                  pos=(RES[0] - blank_wooden_board.get_rect().width / 2, RES[1] - 310),
                  font=get_font(20), base_color=(52, 64, 235), hovering_color=(255, 255, 255))
-    Time_out = Button(None, text_input="Time's up", pos=(RES[0] / 2, 100),
-                      font=get_font(30), base_color=(255, 0, 0), hovering_color=(255, 255, 255))
-    Go_on_island = Button(None, text_input="Get on island", pos=(300, 200),
+    Go_on_island = Button(None, text_input="Get on island", pos=(RES[0] / 2, 100),
                       font=get_font(30), base_color=(255, 0, 0), hovering_color=(255, 255, 255))
     Finish_challenge = Button(None, text_input="Collect treasure", pos=(RES[0] / 2, 200),
                       font=get_font(30), base_color=(255, 0, 0), hovering_color=(255, 255, 255))
     num_answers_need_to_be_answered = [15, 15, 15, 10]
     num_calculations = 1
-    time_for_each_questions = [[10, 5], [9, 4], [8, 4], [7, 4], [7, 3]]
+    time_for_each_questions = [[9, 5], [8, 4], [8, 4], [7, 4], [7, 4]]
     animating_explosion = False
     animation_timer = 115
     PT1_usable, PT2_usable, PT3_usable = False, False, False
@@ -261,7 +264,7 @@ def game():
     input_rect_alt = Button(None, '          ', (RES[0] / 2, 300), get_font(30), (0, 0, 0), (255, 255, 255))
     list_button = [input_rect_alt]
     active = False
-    lose_text = font.render("You Lost", True, (255, 0, 0))
+    lose_text = font.render("Game Over", True, (255, 0, 0))
     win_text = font.render("YOU WON!!", True, (0, 255, 0))
     time_freeze_text = font.render("ICICLE!", True, (102, 222, 126))
     star_of_hope_text = font.render("2X POINTS!!", True, (232, 206, 37))
@@ -270,11 +273,9 @@ def game():
     using_PT2 = False
     using_PT3 = False
     usage_time_left_PT3 = 3
-    list2 = [Time_out]
     questions_count = 0
     frame_pass1 = 0
     frame_pass2 = 0
-    block_number = random.randint(0, 2)
     frame_pass_PT2 = 0
     remaining_time_stage = 0
     final_stage = 0
@@ -299,24 +300,35 @@ def game():
         screen.blit(game_bg, (0, 0))
         screen.blit(island_images[current_island_img], (RES[0] / 2 - 280, RES[1] / 2 - 220))
         screen.blit(ship, (0, 30))
-        screen.blit(blockades[block_number], (RES[0]/2-200, RES[1]/2-200))
         screen.blit(cannon, (300, 380))
         PT1_use_time = get_font(15).render("Usage: {}".format(PTS_use_time[0]), True, (255, 255, 255))
         PT2_use_time = get_font(15).render("Usage: {}".format(PTS_use_time[1]), True, (255, 255, 255))
         PT3_use_time = get_font(15).render("Usage: {}".format(PTS_use_time[2]), True, (255, 255, 255))
-        questions_left_text = get_font(15).render("Questions: {}".format(num_answers_need_to_be_answered[num_calculations - 1] - questions_count),
+        questions_left_text = get_font(15).render("Questions: {}/{}".format(questions_count+1, num_answers_need_to_be_answered[num_calculations - 1]),
                                           True, (255, 255, 255))
         game_mouse = pygame.mouse.get_pos()
         if round(frame_pass1 / 60) < time_for_each_questions[remaining_time_stage][final_stage] and not game_over and not win:
             frame_pass1 += 1
         if round(frame_pass1 / 60) == time_for_each_questions[remaining_time_stage][final_stage] and not game_over and not win:
-            change_update(game_mouse, list2)
             active = False
+            if PT1_usable:
+                animating_explosion = True
+                frame_pass1 = 0
+                questions_count += 1
+                PTS_use_time[0] -= 1
+                active = True
+            elif not PT1_usable:
+                player1.health -= 100
+                frame_pass1 = 0
+            problem, answer = generate_expression_and_calculate_result_geacr(num_calculations)
+            problem1 = Problem(num_calculations, False)
         if not win:
+            Time_left_text = font.render("Time remaining:", True, (255, 0, 0))
+            screen.blit(Time_left_text, (RES[0] / 2 - 200, 40))
             Time_left_text = font.render(
-                "Time: {}".format(time_for_each_questions[remaining_time_stage][final_stage] - round(frame_pass1 / 60)), True,
-                (255, 255, 255))
-            screen.blit(Time_left_text, (RES[0] / 2 - 70, RES[1] / 2 - 400))
+                "{}".format(time_for_each_questions[remaining_time_stage][final_stage] - round(frame_pass1 / 60)),
+                True, (255, 0, 0))
+            screen.blit(Time_left_text, (RES[0] / 2, 90))
         if using_PT2:
             FPS = 30
             screen.blit(time_freeze_text, (RES[0] / 2 + 200, RES[1] / 2 - 400))
@@ -327,7 +339,7 @@ def game():
                 using_PT2 = False
         if using_PT3:
             screen.blit(star_of_hope_text, (RES[0] / 2 - 400, RES[1] / 2 - 400))
-        level_text = get_font(15).render("Next: {}".format(level), True, (255, 255, 255))
+        level_text = get_font(15).render("Mode: {}".format(level), True, (255, 255, 255))
         change_update(game_mouse, list1)
         border_surface = pygame.Surface((surface_width + 8, 83), pygame.SRCALPHA)
         input_surface = pygame.Surface((surface_width, 75), pygame.SRCALPHA)
@@ -342,7 +354,8 @@ def game():
         screen.blit(text_surface, (input_rect.x + 15, input_rect.y + 15))
         surface_width = max(text_surface.get_width() + 20, 300)
         change_update(game_mouse, list_button)
-        draw_health_bar(player1.health, 20, 20)
+        draw_health_bar(player1.health, RES[0] - 350, 150)
+        print("health= ", player1.health)
         problem1.display_problem_answer(screen, problem, answer)
         change_update(game_mouse, list_button)
         screen.blit(PT1_use_time, (blank_wooden_board.get_rect().width / 2 - 50, RES[1] - 90))
@@ -363,7 +376,7 @@ def game():
             elif frame_pass2 == animation_timer:
                 frame_pass2 = 0
                 animating_explosion = False
-        pygame.draw.line(screen, (255, 0, 0), (0, RES[1] / 2), (RES[0], RES[1] / 2), 3)
+        pygame.draw.line(screen, (255, 0, 0), (0 + 200, 400), (RES[0]-200, 400), 5)
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 pygame.quit()
@@ -390,14 +403,10 @@ def game():
                     active = True
                 else:
                     active = False
-                if Time_out.checkforInput(game_mouse):
-                    frame_pass1 = 0
-                    player1.health -= 100
             if event.type == pygame.KEYDOWN and active:
                 if event.key == pygame.K_BACKSPACE:
                     answer_input = answer_input[:-1]
                 elif event.key == pygame.K_RETURN and not win and not game_over:
-                    block_number = random.randint(0,2)
                     total_questions_given += 1
                     if total_questions_given % 2 == 0 and random.randint(0, 1) == 1:
                         PTS_use_time[random.randint(0, 2)] += 1
@@ -452,7 +461,7 @@ def game():
             game_over = True
         if game_over:
             screen.blit(lose_text, (RES[0] / 2 - 100, RES[1] / 2))
-        if win:
+        elif win:
             screen.blit(win_text, (RES[0] / 2 - 100, RES[1] / 2))
             current_island_img = 0
             Go_on_island.changeColor(game_mouse)
