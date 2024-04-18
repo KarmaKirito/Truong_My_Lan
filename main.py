@@ -238,12 +238,13 @@ def game():
                       font=get_font(30), base_color=(255, 0, 0), hovering_color=(255, 255, 255))
     Finish_challenge = Button(None, text_input="Collect treasure", pos=(RES[0] / 2, 200),
                       font=get_font(30), base_color=(255, 0, 0), hovering_color=(255, 255, 255))
-    num_answers_need_to_be_answered = [6, 5, 4, 3]
+    num_answers_need_to_be_answered = [15, 15, 15, 10]
     num_calculations = 1
-    time_for_each_questions = [7, 6, 5, 4, 4]
+    time_for_each_questions = [[10, 5], [9, 4], [8, 4], [7, 4], [7, 3]]
     animating_explosion = False
     animation_timer = 115
-    PT1_used, PT2_used, PT3_used = False, False, False
+    PT1_usable, PT2_usable, PT3_usable = False, False, False
+    PTS_use_time = [1, 1, 1]
     win = False
     game_over = False
     on_island = False
@@ -270,25 +271,43 @@ def game():
     frame_pass2 = 0
     frame_pass_PT2 = 0
     remaining_time_stage = 0
+    final_stage = 0
     total_questions_given = 1
     problem1 = Problem(num_calculations, False)
     problem, answer = generate_expression_and_calculate_result_geacr(num_calculations)
     current_island_img = 10
     while True:
         screen.fill((100, 100, 100))
+        if PTS_use_time[0] > 0:
+            PT1_usable = True
+        elif PTS_use_time[0] == 0:
+            PT1_usable = False
+        if PTS_use_time[1] > 0:
+            PT2_usable = True
+        elif PTS_use_time[1] == 0:
+            PT2_usable = False
+        if PTS_use_time[2] > 0:
+            PT3_usable = True
+        elif PTS_use_time[2] == 0:
+            PT3_usable = False
         screen.blit(game_bg, (0, 0))
         screen.blit(island_images[current_island_img], (RES[0] / 2 - 280, RES[1] / 2 - 220))
         screen.blit(ship, (0, 30))
         screen.blit(cannon, (300, 380))
+        PT1_use_time = get_font(15).render("Usage: {}".format(PTS_use_time[0]), True, (255, 255, 255))
+        PT2_use_time = get_font(15).render("Usage: {}".format(PTS_use_time[1]), True, (255, 255, 255))
+        PT3_use_time = get_font(15).render("Usage: {}".format(PTS_use_time[2]), True, (255, 255, 255))
+        questions_left_text = get_font(15).render("Questions: {}".format(num_answers_need_to_be_answered[num_calculations - 1] - questions_count),
+                                          True, (255, 255, 255))
         game_mouse = pygame.mouse.get_pos()
-        if round(frame_pass1 / 60) < time_for_each_questions[remaining_time_stage] and not game_over and not win:
+        if round(frame_pass1 / 60) < time_for_each_questions[remaining_time_stage][final_stage] and not game_over and not win:
             frame_pass1 += 1
         if round(frame_pass1 / 60) == time_for_each_questions[remaining_time_stage] and not game_over and not win:
             change_update(game_mouse, list2)
-            active = False  # Deactivate input box
+            active = False
         if not win:
             Time_left_text = font.render(
-                "Time: {}".format(time_for_each_questions[remaining_time_stage] - round(frame_pass1 / 60)), True,
+                "Time: {}".format(time_for_each_questions[remaining_time_stage][final_stage] - round(frame_pass1 / 60)), True,
                 (255, 255, 255))
             screen.blit(Time_left_text, (RES[0] / 2 - 70, RES[1] / 2 - 400))
         if using_PT2:
@@ -311,7 +330,7 @@ def game():
         input_rect = input_surface.get_rect(center=(input_rect_alt.x_cor + 30, input_rect_alt.y_cor))
         screen.blit(border_surface, border_rect)
         screen.blit(input_surface, input_rect)
-        screen.blit(level_text, (RES[0] - 350, 50))
+        screen.blit(level_text, (RES[0] - 350, 60))
         text_surface = font.render(answer_input, True, (255, 255, 255))
         screen.blit(text_surface, (input_rect.x + 15, input_rect.y + 15))
         surface_width = max(text_surface.get_width() + 20, 300)
@@ -319,12 +338,16 @@ def game():
         draw_health_bar(player1.health, 20, 20)
         problem1.display_problem_answer(screen, problem, answer)
         change_update(game_mouse, list_button)
+        screen.blit(PT1_use_time, (blank_wooden_board.get_rect().width / 2 - 50, RES[1] - 90))
+        screen.blit(PT2_use_time, (blank_wooden_board.get_rect().width / 2 - 50, RES[1] - 290))
+        screen.blit(PT3_use_time, (RES[0] - blank_wooden_board.get_rect().width / 2 - 50, RES[1] - 290))
+        screen.blit(questions_left_text, (RES[0] - 350, 30))
         money(player1.gold, RES[0] - 350, 100)
-        if PT1_used and PT1.checkforInput(game_mouse):
+        if not PT1_usable and PT1.checkforInput(game_mouse):
             screen.blit(already_used_text, (RES[0] / 2 - 400, RES[1] / 2))
-        if PT2_used and PT2.checkforInput(game_mouse):
+        if not PT2_usable and PT2.checkforInput(game_mouse):
             screen.blit(already_used_text, (RES[0] / 2 - 400, RES[1] / 2))
-        if PT3_used and PT3.checkforInput(game_mouse):
+        if not PT3_usable and PT3.checkforInput(game_mouse):
             screen.blit(already_used_text, (RES[0] / 2 - 400, RES[1] / 2))
         if animating_explosion:
             player1.animate_explosion()
@@ -339,19 +362,19 @@ def game():
                 pygame.quit()
                 sys.exit()
             if event.type == pygame.MOUSEBUTTONDOWN:
-                if PT1.checkforInput(game_mouse) and not PT1_used:
+                if PT1.checkforInput(game_mouse) and PT1_usable:
                     animating_explosion = True
                     frame_pass1 = 0
                     questions_count += 1
                     problem, answer = generate_expression_and_calculate_result_geacr(num_calculations)
                     problem1 = Problem(num_calculations, False)
-                    PT1_used = True
-                if PT2.checkforInput(game_mouse) and not PT2_used:
+                    PTS_use_time[0] -= 1
+                if PT2.checkforInput(game_mouse) and PT2_usable:
                     using_PT2 = True
-                    PT2_used = True
-                if PT3.checkforInput(game_mouse) and not PT3_used:
+                    PTS_use_time[1] -= 1
+                if PT3.checkforInput(game_mouse) and PT3_usable:
                     using_PT3 = True
-                    PT3_used = True
+                    PTS_use_time[2] -= 1
                 if Go_on_island.checkforInput(game_mouse):
                     on_island = True
                 if Finish_challenge.checkforInput(game_mouse):
@@ -367,7 +390,9 @@ def game():
                     answer_input = answer_input[:-1]
                 elif event.key == pygame.K_RETURN and not win and not game_over:
                     total_questions_given += 1
-                    if total_questions_given % 2 == 0:
+                    if total_questions_given % 2 == 0 and random.randint(0, 1) == 1:
+                        PTS_use_time[random.randint(0, 2)] += 1
+                    if total_questions_given % 5 == 0 and current_island_img > 0:
                         current_island_img -= 1
                     questions_count += 1
                     frame_pass1 = 0
@@ -386,21 +411,33 @@ def game():
                     answer_input = ''
                 elif event.key != pygame.K_BACKSPACE:
                     answer_input += event.unicode
-        if questions_count == num_answers_need_to_be_answered[0] and num_calculations == 1 and level == mode[0]:
+        if questions_count == num_answers_need_to_be_answered[0] - 5 and num_calculations == 1:
+            final_stage = 1
+        if questions_count == num_answers_need_to_be_answered[0] and num_calculations == 1:
             questions_count = 0
             num_calculations += 1
             level = mode[1]
             remaining_time_stage += 1
-        if questions_count == num_answers_need_to_be_answered[1] and num_calculations == 2 and level == mode[1]:
+            final_stage = 0
+        if questions_count == num_answers_need_to_be_answered[1] - 5 and num_calculations == 2:
+            final_stage = 1
+        if questions_count == num_answers_need_to_be_answered[1] and num_calculations == 2:
             questions_count = 0
             level = mode[2]
             num_calculations += 1
             remaining_time_stage += 1
-        if questions_count == num_answers_need_to_be_answered[2] and num_calculations == 3 and level == mode[2]:
+            final_stage = 0
+        if questions_count == num_answers_need_to_be_answered[2] - 5 and num_calculations == 3:
+            final_stage = 1
+        if questions_count == num_answers_need_to_be_answered[2] and num_calculations == 3:
             questions_count = 0
             num_calculations += 1
             level = mode[3]
-        if questions_count == num_answers_need_to_be_answered[3] and num_calculations == 4 and level == mode[3]:
+            remaining_time_stage += 1
+            final_stage = 0
+        if questions_count == num_answers_need_to_be_answered[3] - 5 and num_calculations == 4:
+            final_stage = 1
+        if questions_count == num_answers_need_to_be_answered[3] and num_calculations == 4:
             win = True
         if player1.health <= 0:
             game_over = True
