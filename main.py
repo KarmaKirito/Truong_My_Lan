@@ -25,6 +25,12 @@ for i in range(0, 11):
     island_image = pygame.transform.scale(pygame.image.load('Find_treasure/Island_zoomed_1.{}.png'.format(i)).
                                           convert_alpha(), (600, 600))
     island_images.append(island_image)
+blockade_size = (400, 400)
+abandon_ship = pygame.transform.scale(pygame.image.load('Find_treasure/abandoned_ship_official.png').convert_alpha(), blockade_size)
+kraken = pygame.transform.scale(pygame.image.load('Find_treasure/Kraken_official.png').convert_alpha(), blockade_size)
+tornado = pygame.transform.scale(pygame.image.load('Find_treasure/tornado_official.png').convert_alpha(), blockade_size)
+blockades = [abandon_ship, kraken, tornado]
+
 
 
 class Button:
@@ -68,7 +74,7 @@ class Player:
         self.FPS = 60
         self.size = 128
         self.explosion_stage = 0
-        self.image_scale = 4
+        self.image_scale = 6
         self.explosion_frame_count = 0
         self.explosion_animation_speed = 3
         self.explosion_frame_index = 0
@@ -97,7 +103,7 @@ class Player:
                     self.explosion_stage = 0
 
         self.explosion_image = self.explosion_animation_list[self.explosion_stage][self.explosion_frame_index]
-        screen.blit(self.explosion_image, (RES[0] / 2 - 250, RES[1] / 2 - 400))
+        screen.blit(self.explosion_image, (RES[0] / 2 - 350, RES[1] / 2 - 475))
 
     def load_images(self, sprite_sheet, animation_steps):
         animation_list = []
@@ -276,6 +282,7 @@ def game():
     questions_count = 0
     frame_pass1 = 0
     frame_pass2 = 0
+    block_number = random.randint(0, 2)
     frame_pass_PT2 = 0
     remaining_time_stage = 0
     final_stage = 0
@@ -300,6 +307,7 @@ def game():
         screen.blit(game_bg, (0, 0))
         screen.blit(island_images[current_island_img], (RES[0] / 2 - 280, RES[1] / 2 - 220))
         screen.blit(ship, (0, 30))
+        screen.blit(blockades[block_number], (RES[0] / 2 - 200, RES[1] / 2 - 200))
         screen.blit(cannon, (300, 380))
         PT1_use_time = get_font(15).render("Usage: {}".format(PTS_use_time[0]), True, (255, 255, 255))
         PT2_use_time = get_font(15).render("Usage: {}".format(PTS_use_time[1]), True, (255, 255, 255))
@@ -307,9 +315,9 @@ def game():
         questions_left_text = get_font(15).render("Questions: {}/{}".format(questions_count+1, num_answers_need_to_be_answered[num_calculations - 1]),
                                           True, (255, 255, 255))
         game_mouse = pygame.mouse.get_pos()
-        if round(frame_pass1 / 60) < time_for_each_questions[remaining_time_stage][final_stage] and not game_over and not win:
+        if round(frame_pass1 / 60) < time_for_each_questions[remaining_time_stage][final_stage] and not game_over and not win and not animating_explosion:
             frame_pass1 += 1
-        if round(frame_pass1 / 60) == time_for_each_questions[remaining_time_stage][final_stage] and not game_over and not win:
+        if round(frame_pass1 / 60) == time_for_each_questions[remaining_time_stage][final_stage] and not game_over and not win and not animating_explosion:
             active = False
             if PT1_usable:
                 animating_explosion = True
@@ -375,6 +383,7 @@ def game():
                 frame_pass2 += 1
             elif frame_pass2 == animation_timer:
                 frame_pass2 = 0
+                frame_pass1 = 0
                 animating_explosion = False
         pygame.draw.line(screen, (255, 0, 0), (0 + 200, 400), (RES[0]-200, 400), 5)
         for event in pygame.event.get():
@@ -407,6 +416,7 @@ def game():
                 if event.key == pygame.K_BACKSPACE:
                     answer_input = answer_input[:-1]
                 elif event.key == pygame.K_RETURN and not win and not game_over:
+                    block_number = random.randint(0, 2)
                     total_questions_given += 1
                     if total_questions_given % 2 == 0 and random.randint(0, 1) == 1:
                         PTS_use_time[random.randint(0, 2)] += 1
