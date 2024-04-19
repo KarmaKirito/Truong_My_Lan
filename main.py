@@ -14,7 +14,7 @@ ship = pygame.image.load('Find_treasure/ship_1.png').convert_alpha()
 blank_wooden_board = pygame.transform.scale(pygame.image.load('Find_treasure/blank_wooden_board_official.png')
                                             .convert_alpha(), (200, 200))
 cannon = pygame.transform.scale(pygame.image.load('Find_treasure/Cannon_official.png').convert_alpha(), (400, 400))
-#island_pic = pygame.image.load('spaceships_bullets_game/spaceship3.png').convert_alpha()
+question_board = pygame.transform.scale(pygame.image.load('Find_treasure/blank_wooden_board_official.png').convert_alpha(), (400, 300))
 treasure_chest = pygame.transform.scale(pygame.image.load('Find_treasure/collect_treasure_chest.jpg').convert_alpha(), RES)
 on_island_img = pygame.transform.scale(pygame.image.load('Find_treasure/go_on_island.jpg'), RES)
 explosion_imgs = pygame.image.load('explosion_3_40_128.png').convert_alpha()
@@ -214,7 +214,7 @@ class Problem:
 
     def display_problem_answer(self, screen, problem, answer):
         # Render problem text
-        problem_text = self.font.render(problem, True, (255, 255, 255))
+        problem_text = self.font.render(problem, True, (0, 255, 0))
 
         # Render answer text with an equal sign
         answer_text = self.font.render(f"{problem} = {answer}", True, (0, 0, 0))
@@ -224,12 +224,12 @@ class Problem:
         answer_text_rect = answer_text.get_rect()
 
         # Calculate positions for centering the text
-        problem_x = (screen.get_width() - problem_text_rect.width) // 2
-        problem_y = (screen.get_height() // 2) - answer_text_rect.height - 200
+        problem_x = (screen.get_width() - problem_text_rect.width) // 2 + 10
+        problem_y = (screen.get_height() // 2) + answer_text_rect.height - 270
 
         # Blit the texts onto the screen
         screen.blit(problem_text, (problem_x, problem_y))
-        screen.blit(answer_text, (problem_x, problem_y + answer_text_rect.height))
+        screen.blit(answer_text, (problem_x, problem_y - answer_text_rect.height))
 
 
 def get_font(size):
@@ -243,7 +243,7 @@ def game():
     global answer_input, FPS
     PT1 = Button(blank_wooden_board, text_input='Cannon', pos=(blank_wooden_board.get_rect().width / 2, RES[1] - 110),
                  font=get_font(20), base_color=(52, 64, 235), hovering_color=(255, 255, 255))
-    PT2 = Button(blank_wooden_board, text_input='Icicle', pos=(blank_wooden_board.get_rect().width / 2, RES[1] - 310),
+    PT2 = Button(blank_wooden_board, text_input='Icicle', pos=(RES[0] - blank_wooden_board.get_rect().width / 2, RES[1] - 110),
                  font=get_font(20), base_color=(52, 64, 235), hovering_color=(255, 255, 255))
     PT3 = Button(blank_wooden_board, text_input='x2 score',
                  pos=(RES[0] - blank_wooden_board.get_rect().width / 2, RES[1] - 310),
@@ -269,7 +269,7 @@ def game():
     font = get_font(30)
     input_rect_alt = Button(None, '          ', (RES[0] / 2, 300), get_font(30), (0, 0, 0), (255, 255, 255))
     list_button = [input_rect_alt]
-    active = False
+    active = True
     lose_text = font.render("Game Over", True, (255, 0, 0))
     win_text = font.render("YOU WON!!", True, (0, 255, 0))
     time_freeze_text = font.render("ICICLE!", True, (102, 222, 126))
@@ -278,7 +278,7 @@ def game():
     list1 = [PT1, PT2, PT3]
     using_PT2 = False
     using_PT3 = False
-    usage_time_left_PT3 = 3
+    usage_time_left_PT3 = 2
     questions_count = 0
     frame_pass1 = 0
     frame_pass2 = 0
@@ -307,7 +307,6 @@ def game():
         screen.blit(game_bg, (0, 0))
         screen.blit(island_images[current_island_img], (RES[0] / 2 - 280, RES[1] / 2 - 220))
         screen.blit(ship, (0, 30))
-        screen.blit(blockades[block_number], (RES[0] / 2 - 200, RES[1] / 2 - 200))
         screen.blit(cannon, (300, 380))
         PT1_use_time = get_font(15).render("Usage: {}".format(PTS_use_time[0]), True, (255, 255, 255))
         PT2_use_time = get_font(15).render("Usage: {}".format(PTS_use_time[1]), True, (255, 255, 255))
@@ -349,6 +348,15 @@ def game():
             screen.blit(star_of_hope_text, (RES[0] / 2 - 400, RES[1] / 2 - 400))
         level_text = get_font(15).render("Mode: {}".format(level), True, (255, 255, 255))
         change_update(game_mouse, list1)
+        change_update(game_mouse, list_button)
+        draw_health_bar(player1.health, RES[0] - 350, 150)
+        screen.blit(question_board, (RES[0]/2 - 175, RES[1]/2-300))
+        screen.blit(blockades[block_number], (RES[0] / 2 - 200, RES[1] / 2 - 200))
+        change_update(game_mouse, list_button)
+        screen.blit(PT1_use_time, (blank_wooden_board.get_rect().width / 2 - 50, RES[1] - 90))
+        screen.blit(PT2_use_time, (RES[0] - blank_wooden_board.get_rect().width / 2 - 50, RES[1] - 90))
+        screen.blit(PT3_use_time, (RES[0] - blank_wooden_board.get_rect().width / 2 - 50, RES[1] - 290))
+        screen.blit(questions_left_text, (RES[0] - 350, 30))
         border_surface = pygame.Surface((surface_width + 8, 83), pygame.SRCALPHA)
         input_surface = pygame.Surface((surface_width, 75), pygame.SRCALPHA)
         border_surface.fill((255, 255, 255, 150))
@@ -361,30 +369,32 @@ def game():
         text_surface = font.render(answer_input, True, (255, 255, 255))
         screen.blit(text_surface, (input_rect.x + 15, input_rect.y + 15))
         surface_width = max(text_surface.get_width() + 20, 300)
-        change_update(game_mouse, list_button)
-        draw_health_bar(player1.health, RES[0] - 350, 150)
-        print("health= ", player1.health)
         problem1.display_problem_answer(screen, problem, answer)
-        change_update(game_mouse, list_button)
-        screen.blit(PT1_use_time, (blank_wooden_board.get_rect().width / 2 - 50, RES[1] - 90))
-        screen.blit(PT2_use_time, (blank_wooden_board.get_rect().width / 2 - 50, RES[1] - 290))
-        screen.blit(PT3_use_time, (RES[0] - blank_wooden_board.get_rect().width / 2 - 50, RES[1] - 290))
-        screen.blit(questions_left_text, (RES[0] - 350, 30))
-        money(player1.gold, RES[0] - 350, 100)
+        money(player1.gold, RES[0] - 400, 100)
         if not PT1_usable and PT1.checkforInput(game_mouse):
             screen.blit(already_used_text, (RES[0] / 2 - 400, RES[1] / 2))
         if not PT2_usable and PT2.checkforInput(game_mouse):
             screen.blit(already_used_text, (RES[0] / 2 - 400, RES[1] / 2))
         if not PT3_usable and PT3.checkforInput(game_mouse):
             screen.blit(already_used_text, (RES[0] / 2 - 400, RES[1] / 2))
-        if animating_explosion:
+        if PT3_usable:
+            using_PT3 = True
+            if usage_time_left_PT3 == 0:
+                usage_time_left_PT3 = 2
+                PTS_use_time[2] -= 1
+            if PTS_use_time[2] == 0:
+                PT3_usable = False
+        if animating_explosion and not game_over:
             player1.animate_explosion()
+            active = False
             if frame_pass2 < animation_timer:
                 frame_pass2 += 1
             elif frame_pass2 == animation_timer:
                 frame_pass2 = 0
                 frame_pass1 = 0
                 animating_explosion = False
+        elif not animating_explosion:
+            active = True
         pygame.draw.line(screen, (255, 0, 0), (0 + 200, 400), (RES[0]-200, 400), 5)
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -470,7 +480,16 @@ def game():
         if player1.health <= 0:
             game_over = True
         if game_over:
-            screen.blit(lose_text, (RES[0] / 2 - 100, RES[1] / 2))
+            if not PT1_usable:
+                active = False
+                screen.blit(lose_text, (RES[0] / 2 - 100, RES[1] / 2))
+            elif PT1_usable:
+                animating_explosion = True
+                frame_pass1 = 0
+                questions_count += 1
+                PTS_use_time[0] -= 1
+                player1.health += 100
+                game_over = False
         elif win:
             screen.blit(win_text, (RES[0] / 2 - 100, RES[1] / 2))
             current_island_img = 0
